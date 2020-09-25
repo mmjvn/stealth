@@ -17,6 +17,9 @@ module Stealth
       white:        97
     ].freeze
 
+    @@logger ||= ::Logger.new("#{File.expand_path(Pathname.new(Dir.pwd))}/log/#{ENV['STEALTH_ENV'] || 'development'}.log")
+    @@logger.datetime_format = "%Y-%m-%d %H:%M:%S"
+
     def self.color_code(code)
       COLORS.fetch(code) { raise(ArgumentError, "Color #{code} not supported.") }
     end
@@ -26,9 +29,10 @@ module Stealth
     end
 
     def self.log(topic:, message:)
-      unless ENV['STEALTH_ENV'] == 'test'
-        puts "TID-#{Stealth.tid} #{print_topic(topic)} #{message}"
-      end
+      return if ENV['STEALTH_ENV'] == 'test'
+
+      puts "TID-#{Stealth.tid} #{print_topic(topic)} #{message}"
+      @@logger.info("TID-#{Stealth.tid} [#{topic}] #{message}")
     end
 
     def self.print_topic(topic)

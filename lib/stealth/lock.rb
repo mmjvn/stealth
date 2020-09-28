@@ -68,7 +68,8 @@ module Stealth
     private
 
       def lock_key
-        [@session_id, 'lock'].join('-')
+        session_key = "session:#{@session_id}"
+        [session_key, 'lock'].join('-')
       end
 
       def generate_lock

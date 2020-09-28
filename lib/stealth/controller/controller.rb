@@ -14,18 +14,24 @@ module Stealth
     include Stealth::Controller::InterruptDetect
     include Stealth::Controller::DevJumps
     include Stealth::Controller::Nlp
+    include Stealth::Controller::Initiator
+    include Stealth::Controller::CurrentSender
 
     attr_reader :current_message, :current_service, :flow_controller,
-                :action_name, :current_session_id
+                :action_name, :current_session_id, :current_user_id,
+                :current_page_info
+
     attr_accessor :nlp_result, :pos
 
     def initialize(service_message:, pos: nil)
       @current_message = service_message
       @current_service = service_message.service
-      @current_session_id = service_message.sender_id
+      @current_user_id = service_message.sender_id
+      @current_session_id = current_session_id
       @nlp_result = service_message.nlp_result
       @pos = pos
       @progressed = false
+      @current_page_info = @current_message.page_info
     end
 
     def has_location?
@@ -52,12 +58,16 @@ module Stealth
     end
 
     def current_session
-      @current_session ||= Stealth::Session.new(id: current_session_id)
+      @current_session ||= Stealth::Session.new(
+        id: current_user_id,
+        page_id: @current_page_info[:id]
+      )
     end
 
     def previous_session
       @previous_session ||= Stealth::Session.new(
-        id: current_session_id,
+        id: current_user_id,
+        page_id: @current_page_info[:id],
         type: :previous
       )
     end
@@ -122,8 +132,19 @@ module Stealth
         raise ArgumentError, "Please specify your step_to_in `delay` parameter using ActiveSupport::Duration, e.g. `1.day` or `5.hours`"
       end
 
-      Stealth::ScheduledReplyJob.perform_in(delay, current_service, current_session_id, flow, state, current_message.target_id)
-      Stealth::Logger.l(topic: "session", message: "User #{current_session_id}: scheduled session step to #{flow}->#{state} in #{delay} seconds")
+      Stealth::ScheduledReplyJob.perform_in(
+        delay,
+        current_service,
+        current_user_id,
+        flow,
+        state,
+        @current_page_info,
+        current_message.target_id
+      )
+      Stealth::Logger.l(
+        topic: "session",
+        message: "Session #{current_session_id}: scheduled session step to #{flow}->#{state} in #{delay} seconds"
+      )
     end
 
     def step_to_at(timestamp, session: nil, flow: nil, state: nil, slug: nil)
@@ -143,8 +164,19 @@ module Stealth
         raise ArgumentError, "Please specify your step_to_at `timestamp` parameter as a DateTime"
       end
 
-      Stealth::ScheduledReplyJob.perform_at(timestamp, current_service, current_session_id, flow, state, current_message.target_id)
-      Stealth::Logger.l(topic: "session", message: "User #{current_session_id}: scheduled session step to #{flow}->#{state} at #{timestamp.iso8601}")
+      Stealth::ScheduledReplyJob.perform_at(
+        timestamp,
+        current_service,
+        current_user_id,
+        flow,
+        state,
+        @current_page_info,
+        current_message.target_id
+      )
+      Stealth::Logger.l(
+        topic: "session",
+        message: "Session #{current_session_id}: scheduled session step to #{flow}->#{state} at #{timestamp.iso8601}"
+      )
     end
 
     def step_to(session: nil, flow: nil, state: nil, slug: nil, pos: nil)
@@ -197,7 +229,8 @@ module Stealth
 
     def step_back
       back_to_session = Stealth::Session.new(
-        id: current_session_id,
+        id: current_user_id,
+        page_id: @current_page_info[:id],
         type: :back_to
       )
 
@@ -215,11 +248,18 @@ module Stealth
       @progressed = :do_nothing
     end
 
+    def current_session_id
+      [@current_user_id, @current_page_info[:id]].join("_")
+    end
+
     private
 
       def update_session(flow:, state:)
         @progressed = :updated_session
-        @current_session = Session.new(id: current_session_id)
+        @current_session = Session.new(
+          id: current_user_id,
+          page_id: @current_page_info[:id]
+        )
 
         unless current_session.flow_string == flow.to_s && current_session.state_string == state.to_s
           @current_session.set_session(new_flow: flow, new_state: state)
@@ -228,7 +268,8 @@ module Stealth
 
       def store_back_to_session(flow:, state:)
         back_to_session = Session.new(
-          id: current_session_id,
+          id: current_user_id,
+          page_id: @current_page_info[:id],
           type: :back_to
         )
         back_to_session.set_session(new_flow: flow, new_state: state)

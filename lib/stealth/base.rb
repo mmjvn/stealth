@@ -24,6 +24,9 @@ require 'stealth/reloader'
 # helpers
 require 'stealth/helpers/redis'
 
+# logger
+require 'logger'
+
 module Stealth
 
   def self.env
@@ -174,6 +177,8 @@ require 'stealth/controller/dynamic_delay'
 require 'stealth/controller/interrupt_detect'
 require 'stealth/controller/dev_jumps'
 require 'stealth/controller/nlp'
+require 'stealth/controller/initiator'
+require 'stealth/controller/current_sender'
 require 'stealth/controller/controller'
 require 'stealth/flow/base'
 require 'stealth/services/base_client'

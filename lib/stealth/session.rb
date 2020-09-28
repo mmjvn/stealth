@@ -8,16 +8,17 @@ module Stealth
 
     SLUG_SEPARATOR = '->'
 
-    attr_reader :flow, :state, :id, :type
+    attr_reader :flow, :state, :id, :type, :page_id
     attr_accessor :session
 
     # Session types:
     #   - :primary
     #   - :previous
     #   - :back_to
-    def initialize(id: nil, type: :primary)
+    def initialize(id: nil, type: :primary, page_id: nil)
       @id = id
       @type = type
+      @page_id = page_id
 
       if id.present?
         unless defined?($redis) && $redis.present?
@@ -80,7 +81,7 @@ module Stealth
 
       Stealth::Logger.l(
         topic: [type, 'session'].join('_'),
-        message: "User #{id}: setting session to #{new_flow}->#{new_state}"
+        message: "User #{id} / Page #{page_id}: setting session to #{new_flow}->#{new_state}"
       )
 
       if primary_session?
@@ -107,7 +108,10 @@ module Stealth
       return self if steps.zero?
 
       new_state = self.state + steps
-      new_session = Stealth::Session.new(id: self.id)
+      new_session = Stealth::Session.new(
+        id: self.id,
+        page_id: self.page_id
+      )
       new_session.session = self.class.canonical_session_slug(
         flow: self.flow_string,
         state: new_state
@@ -171,12 +175,16 @@ module Stealth
 
     private
 
+      def primary_session_key
+        "session:#{[id, page_id].join('_')}"
+      end
+
       def previous_session_key
-        [id, 'previous'].join('-')
+        [primary_session_key, 'previous'].join('-')
       end
 
       def back_to_key
-        [id, 'back_to'].join('-')
+        [primary_session_key, 'back_to'].join('-')
       end
 
       def store_current_to_previous(existing_session:)
@@ -184,13 +192,13 @@ module Stealth
         if session == existing_session
           Stealth::Logger.l(
             topic: "previous_session",
-            message: "User #{id}: skipping setting to #{session}"\
+            message: "User #{id} / Page #{page_id}: skipping setting to #{session}"\
                      ' because it is the same as current_session'
           )
         else
           Stealth::Logger.l(
             topic: "previous_session",
-            message: "User #{id}: setting to #{existing_session}"
+            message: "User #{id} / Page #{page_id}: setting to #{existing_session}"
           )
 
           persist_key(

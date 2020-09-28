@@ -71,7 +71,10 @@ module Stealth
             )
 
             translated_reply = handler.send(reply.reply_type)
-            client = service_client.new(reply: translated_reply)
+            client = service_client.new(
+              reply: translated_reply,
+              access_token: current_page_info[:access_token]
+            )
             client.transmit
 
             log_reply(reply) if Stealth.config.transcript_logging

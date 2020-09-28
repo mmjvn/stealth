@@ -20,9 +20,19 @@ module Stealth
       # After coordinate responds to the service, an optional async job
       # may be fired that will continue the work via this method
       def process
-
+        # Empty method
       end
 
+      def redis_back_storage
+        if !defined?($redis) || $redis.blank?
+          raise(
+            Stealth::Errors::RedisNotConfigured,
+            "Please make sure REDIS_URL is configured before using backed storage"
+          )
+        end
+
+        $redis
+      end
     end
   end
 end

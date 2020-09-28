@@ -100,8 +100,8 @@ module Stealth
     EOS
     def setup(service)
       Stealth.load_environment
-      service_setup_klass = "Stealth::Services::#{service.classify}::Setup".constantize
-      service_setup_klass.trigger
+      # service_setup_klass = "Stealth::Services::#{service.classify}::Setup".constantize
+      # service_setup_klass.trigger
     end
 
 
@@ -113,7 +113,11 @@ module Stealth
     EOS
     define_method 'sessions:clear' do
       Stealth.load_environment
-      $redis.flushdb if Stealth.env.development?
+      if Stealth.env.development?
+        # clear session and error keys
+        $redis.scan_each(:match => "session:*") { |key| $redis.del key }
+        $redis.scan_each(:match => "error\-*") { |key| $redis.del key }
+      end
     end
 
 

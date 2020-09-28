@@ -26,17 +26,21 @@ module Stealth
 
     def coordinate
       message_handler.coordinate
+    rescue Exception => ex
+      Stealth::Logger.l(topic: "Exception: #{ex.class} - #{ex.message}", message: ex.backtrace.join("\n\t"))
+      raise
     end
 
     def process
       service_message = message_handler.process
 
-      if Stealth.config.transcript_logging
-        log_incoming_message(service_message)
-      end
+      log_incoming_message(service_message) if Stealth.config.transcript_logging
 
       bot_controller = BotController.new(service_message: service_message)
       bot_controller.route
+    rescue Exception => ex
+      Stealth::Logger.l(topic: "Exception: #{ex.class} - #{ex.message}", message: ex.backtrace.join("\n\t"))
+      raise
     end
 
     private

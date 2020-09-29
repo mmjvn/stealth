@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 module Stealth
-
   class ScheduledReplyJob < Stealth::Jobs
     sidekiq_options queue: :stealth_replies, retry: false
 
@@ -12,8 +11,9 @@ module Stealth
       service_message.target_id = target_id
       service_message.page_info = page_info
       controller = BotController.new(service_message: service_message)
-      controller.step_to(flow: flow, state: state)
+      # controller.step_to(flow: flow, state: state)
+      controller.update_session_to(flow: flow, state: state)
+      controller.route
     end
   end
-
 end

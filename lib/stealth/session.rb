@@ -149,7 +149,7 @@ module Stealth
     def session_key
       case type
       when :primary
-        id
+        primary_session_key
       when :previous
         previous_session_key
       when :back_to

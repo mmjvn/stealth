@@ -23,7 +23,7 @@ module Stealth
         # Empty method
       end
 
-      def redis_back_storage
+      def redis_backed_storage
         if !defined?($redis) || $redis.blank?
           raise(
             Stealth::Errors::RedisNotConfigured,

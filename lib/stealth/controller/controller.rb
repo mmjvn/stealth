@@ -27,11 +27,11 @@ module Stealth
       @current_message = service_message
       @current_service = service_message.service
       @current_user_id = service_message.sender_id
+      @current_page_info = @current_message.page_info
       @current_session_id = current_session_id
       @nlp_result = service_message.nlp_result
       @pos = pos
       @progressed = false
-      @current_page_info = @current_message.page_info
     end
 
     def has_location?

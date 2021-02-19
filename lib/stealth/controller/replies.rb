@@ -241,7 +241,8 @@ module Stealth
             else
               Stealth::Logger.l(
                 topic: :err,
-                message: "User #{current_session_id} unhandled exception due to invalid session_id."
+                message: "User #{current_session_id} unhandled exception due to an " \
+                         "invalid session_id. [#{msg}]"
               )
             end
 
@@ -260,8 +261,12 @@ module Stealth
 
           def log_reply(reply)
             message = case reply.reply_type
-                      when 'text', 'speech'
+                      when 'text'
                         reply['text']
+                      when 'speech'
+                        reply['speech']
+                      when 'ssml'
+                        reply['ssml']
                       when 'delay'
                         '<typing indicator>'
                       else

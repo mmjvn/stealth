@@ -20,16 +20,14 @@ module Stealth
       @type = type
       @page_id = page_id
 
-      if id.present?
-        unless defined?($redis) && $redis.present?
-          raise(
-            Stealth::Errors::RedisNotConfigured,
-            "Please make sure REDIS_URL is configured before using sessions"
-          )
-        end
-
-        get_session
+      unless defined?($redis) && $redis.present?
+        raise(
+          Stealth::Errors::RedisNotConfigured,
+          "Please make sure REDIS_URL is configured before using sessions"
+        )
       end
+
+      get_session
 
       self
     end

@@ -3,15 +3,18 @@ module Stealth
     module CurrentSender
 
       class Sender
-        attr_accessor :name
+        attr_accessor :name, :gender
 
-        def initialize(name)
+        def initialize(name, gender)
           @name = name
+          @gender = gender
         end
       end
 
       def current_user
-        @current_user ||= Stealth::Controller::CurrentSender::Sender.new(user_info[:name])
+        current_user_infor = user_info
+        @current_user ||= Stealth::Controller::CurrentSender::Sender.new(current_user_infor[:name],
+                                                                         current_user_infor[:gender])
       end
 
       private
@@ -19,12 +22,16 @@ module Stealth
       def user_info
         redis_key = "#{current_service.try(:downcase)}:#{current_page_info[:id]}"
         user_name = $redis.hget(redis_key, 'name')
+        user_gender = $redis.hget(redis_key, 'gender')
         if user_name.blank?
           user_profile = fetch_user_profile
-          $redis.hset(redis_key, name: user_profile['name'], gender: user_profile['gender'])
+          user_name = user_profile['name']
+          user_gender = user_profile['gender']
+          $redis.hset(redis_key, name: user_name, gender: user_gender)
         end
         {
-          name: user_name
+          name: user_name,
+          gender: user_gender
         }
       end
 

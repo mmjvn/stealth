@@ -38,7 +38,6 @@ module Stealth
         params.merge!(json_params)
       end
       p request.body
-      p request.env
       dispatcher = Stealth::Dispatcher.new(
         service: params[:service],
         params: params,

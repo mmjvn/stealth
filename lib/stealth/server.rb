@@ -37,7 +37,8 @@ module Stealth
         json_params = MultiJson.load(request.body.read)
         params.merge!(json_params)
       end
-      p request
+      p request.body
+      p request.env
       dispatcher = Stealth::Dispatcher.new(
         service: params[:service],
         params: params,

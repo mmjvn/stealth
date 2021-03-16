@@ -20,8 +20,8 @@ module Stealth
         redis_key = "#{current_service.try(:downcase)}:#{current_page_info[:id]}"
         user_name = $redis.hget(redis_key, 'name')
         if user_name.blank?
-          user_name = fetch_user_profile['name']
-          $redis.hset(redis_key, 'name', user_name)
+          user_profile = fetch_user_profile
+          $redis.hset(redis_key, name: user_profile['name'], gender: user_profile['gender'])
         end
         {
           name: user_name
@@ -31,6 +31,7 @@ module Stealth
       def fetch_user_profile
         service_client = Kernel.const_get("Stealth::Services::#{current_service.classify}::Client")
         profile = service_client.fetch_profile(recipient_id: current_user_id,
+                                               fields: %i[id name gender],
                                                access_token: current_page_info[:access_token])
         profile
       rescue NameError

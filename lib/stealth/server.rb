@@ -35,9 +35,9 @@ module Stealth
       # JSON params need to be parsed and added to the params
       if request.env['CONTENT_TYPE']&.match(/application\/json/i)
         json_params = MultiJson.load(request.body.read)
+        p json_params
         params.merge!(json_params)
       end
-      p request.body
       dispatcher = Stealth::Dispatcher.new(
         service: params[:service],
         params: params,

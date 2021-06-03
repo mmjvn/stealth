@@ -32,11 +32,11 @@ module Stealth
     get_or_post '/incoming/:service' do
       Stealth::Logger.l(topic: params[:service], message: 'Received webhook.')
 
-      p request
       # JSON params need to be parsed and added to the params
       if request.env['CONTENT_TYPE']&.match(/application\/json/i)
         json_params = MultiJson.load(request.body.read)
         params.merge!(json_params)
+        p params
       end
       dispatcher = Stealth::Dispatcher.new(
         service: params[:service],

@@ -21,7 +21,7 @@ module Stealth
           <body>
             <center>
               <a href='https://hellostealth.org'>
-                <img src='http://assets.blackops.nyc/stealth/logo.svg' height='120' alt='Stealth Logo' aria-label='hellostealth.org' />
+                <img src='https://hellostealth.org/images/logo.svg' height='120' alt='Stealth Logo' aria-label='hellostealth.org' />
               </a>
             </center>
           </body>
@@ -32,12 +32,10 @@ module Stealth
     get_or_post '/incoming/:service' do
       Stealth::Logger.l(topic: params[:service], message: 'Received webhook.')
 
-      p get_helpers_from_request(request)
-
+      p request
       # JSON params need to be parsed and added to the params
       if request.env['CONTENT_TYPE']&.match(/application\/json/i)
         json_params = MultiJson.load(request.body.read)
-        p json_params
         params.merge!(json_params)
       end
       dispatcher = Stealth::Dispatcher.new(

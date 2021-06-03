@@ -17,7 +17,10 @@ module Stealth
       white:        97
     ].freeze
 
-    @@logger ||= ::Logger.new("#{File.expand_path(Pathname.new(Dir.pwd))}/log/#{ENV['STEALTH_ENV'] || 'development'}.log")
+    LOG_DIRECTORY = "#{File.expand_path(Pathname.new(Dir.pwd))}/log".freeze
+    Dir.mkdir(LOG_DIRECTORY) unless Dir.exist?(LOG_DIRECTORY)
+
+    @@logger ||= ::Logger.new("#{LOG_DIRECTORY}/#{ENV['STEALTH_ENV'] || 'development'}.log")
     @@logger.datetime_format = "%Y-%m-%d %H:%M:%S"
 
     def self.color_code(code)
@@ -67,6 +70,5 @@ module Stealth
     class << self
       alias_method :l, :log
     end
-
   end
 end

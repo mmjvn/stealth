@@ -5,11 +5,12 @@ module Stealth
   module Services
     class BaseReplyHandler
 
-      attr_reader :recipient_id, :reply
+      attr_reader :recipient_id, :reply, :user_ref_id
 
-      def initialize(recipient_id:, reply:)
+      def initialize(recipient_id:, reply:, user_ref_id: nil)
         @recipient_id = recipient_id
         @reply = reply
+        @user_ref_id = user_ref_id
       end
 
       def text

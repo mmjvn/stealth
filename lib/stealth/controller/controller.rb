@@ -15,11 +15,12 @@ module Stealth
     include Stealth::Controller::DevJumps
     include Stealth::Controller::Nlp
     include Stealth::Controller::Initiator
-    include Stealth::Controller::CurrentSender
 
+    # current_sender_id: PSID or user_ref
+    # current_user_id: PSID
     attr_reader :current_message, :current_service, :flow_controller,
                 :action_name, :current_session_id, :current_user_id,
-                :current_page_info
+                :current_page_info, :current_sender_id
 
     attr_accessor :nlp_result, :pos
 
@@ -27,8 +28,8 @@ module Stealth
       @current_message = service_message
       @current_service = service_message.service
       @current_user_id = service_message.sender_id
-      @current_page_info = @current_message.page_info
-      @current_session_id = current_session_id
+      @current_page_info = service_message.page_info
+      @current_user_ref = service_message.user_ref
       @nlp_result = service_message.nlp_result
       @pos = pos
       @progressed = false
@@ -59,14 +60,14 @@ module Stealth
 
     def current_session
       @current_session ||= Stealth::Session.new(
-        id: current_user_id,
+        id: current_sender_id,
         page_id: @current_page_info[:id]
       )
     end
 
     def previous_session
       @previous_session ||= Stealth::Session.new(
-        id: current_user_id,
+        id: current_sender_id,
         page_id: @current_page_info[:id],
         type: :previous
       )
@@ -136,6 +137,7 @@ module Stealth
         delay,
         current_service,
         current_user_id,
+        @current_user_ref,
         flow,
         state,
         @current_page_info,
@@ -168,6 +170,7 @@ module Stealth
         timestamp,
         current_service,
         current_user_id,
+        @current_user_ref,
         flow,
         state,
         @current_page_info,
@@ -229,7 +232,7 @@ module Stealth
 
     def step_back
       back_to_session = Stealth::Session.new(
-        id: current_user_id,
+        id: current_sender_id,
         page_id: @current_page_info[:id],
         type: :back_to
       )
@@ -249,7 +252,11 @@ module Stealth
     end
 
     def current_session_id
-      [@current_user_id, @current_page_info[:id]].join("_")
+      [current_sender_id, @current_page_info[:id]].join('_')
+    end
+
+    def current_sender_id
+      @current_user_id || @current_user_ref[:id]
     end
 
     private
@@ -257,7 +264,7 @@ module Stealth
       def update_session(flow:, state:)
         @progressed = :updated_session
         @current_session = Session.new(
-          id: current_user_id,
+          id: current_sender_id,
           page_id: @current_page_info[:id]
         )
 
@@ -268,7 +275,7 @@ module Stealth
 
       def store_back_to_session(flow:, state:)
         back_to_session = Session.new(
-          id: current_user_id,
+          id: current_sender_id,
           page_id: @current_page_info[:id],
           type: :back_to
         )

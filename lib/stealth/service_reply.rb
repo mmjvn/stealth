@@ -4,10 +4,12 @@
 module Stealth
   class ServiceReply
 
-    attr_accessor :recipient_id, :replies, :yaml_reply, :context
+    attr_accessor :recipient_id, :replies, :yaml_reply, :context, :user_ref_id
 
-    def initialize(recipient_id:, yaml_reply:, context:, preprocessor: :none)
+    def initialize(recipient_id:, user_ref_id:,
+                   yaml_reply:, context:, preprocessor: :none)
       @recipient_id = recipient_id
+      @user_ref_id = user_ref_id
       @yaml_reply = yaml_reply
       @context = context
 

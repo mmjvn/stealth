@@ -104,7 +104,8 @@ module Stealth
           def load_service_reply(custom_reply:, inline:)
             if inline.present?
               Stealth::ServiceReply.new(
-                recipient_id: current_session_id,
+                recipient_id: current_user_id,
+                user_ref_id: @current_user_ref[:id],
                 yaml_reply: inline,
                 preprocessor: :none,
                 context: nil
@@ -113,7 +114,8 @@ module Stealth
               yaml_reply, preprocessor = action_replies(custom_reply)
 
               Stealth::ServiceReply.new(
-                recipient_id: current_session_id,
+                recipient_id: current_user_id,
+                user_ref_id: @current_user_ref[:id],
                 yaml_reply: yaml_reply,
                 preprocessor: preprocessor,
                 context: binding

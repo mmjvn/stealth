@@ -66,7 +66,8 @@ module Stealth
 
         Stealth::Logger.l(
           topic: 'user',
-          message: "User #{service_message.sender_id} -> #{message}"
+          message: "User #{service_message.sender_id}/" \
+                   "#{service_message.user_ref[:id]} -> #{message}"
         )
       end
   end

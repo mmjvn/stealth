@@ -67,6 +67,7 @@ module Stealth
 
             handler = reply_handler.new(
               recipient_id: current_message.sender_id,
+              user_ref_id: current_message.user_ref[:id],
               reply: reply
             )
 
